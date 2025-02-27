@@ -69,24 +69,25 @@ The app provides interactive data visualizations to enhance disaster response in
 The pipeline employs GridSearchCV for hyperparameter tuning, ensuring high model accuracy. The trained classifier is saved as a pickle file (`classifier.pkl`) for seamless integration into the web application.
 
 ### Quick Start Guide:
-1. **Prepare Data and Train Model:**
-2. Please unzip model file using the following command:
+
+1. **Please unzip model file using the following command:**
    ```sh
    unzip models/classifier.zip -d models/
    ```
+2. **Prepare Data and Train Model:**
    ```sh
    python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db
    python models/train_classifier.py data/DisasterResponse.db models/classifier.pkl
    ```
-4. **Navigate to the `app` directory:**
+3. **Navigate to the `app` directory:**
    ```sh
    cd app
    ```
-5. **Launch the web application:**
+4. **Launch the web application:**
    ```sh
    python run.py
    ```
-6. **Click the `PREVIEW` button to access the homepage.**
+5. **Click the `PREVIEW` button to access the homepage.**
 
 # Contributing
 
