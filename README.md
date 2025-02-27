@@ -21,9 +21,9 @@ This project builds a web application that categorizes disaster-related messages
      python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db
      ```
    - **Run ML Pipeline**
-     Trains the model and saves it as a pickle file.
+     Trains the model and saves it as a pickle file. Please unzip the pickle before using this command line"
      ```sh
-     Please unzip the pickle before using tar -xf classifier.zip
+     tar -xf classifier.zip
      python models/train_classifier.py models/classifier.pkl
      ```
 
