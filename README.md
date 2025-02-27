@@ -21,9 +21,9 @@ This project builds a web application that categorizes disaster-related messages
      python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db
      ```
    - **Run ML Pipeline**
-     Trains the model and saves it as a pickle file. Please unzip the pickle before using this command line"
+     Trains the model and saves it as a pickle file. Please unzip the pickle before using this command line
      ```sh
-     tar -xf classifier.zip
+     unzip models/classifier.zip -d models/
      python models/train_classifier.py models/classifier.pkl
      ```
 
@@ -70,19 +70,23 @@ The pipeline employs GridSearchCV for hyperparameter tuning, ensuring high model
 
 ### Quick Start Guide:
 1. **Prepare Data and Train Model:**
+2. Please unzip model file using the following command:
+   ```sh
+   unzip models/classifier.zip -d models/
+   ```
    ```sh
    python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db
    python models/train_classifier.py data/DisasterResponse.db models/classifier.pkl
    ```
-2. **Navigate to the `app` directory:**
+4. **Navigate to the `app` directory:**
    ```sh
    cd app
    ```
-3. **Launch the web application:**
+5. **Launch the web application:**
    ```sh
    python run.py
    ```
-4. **Click the `PREVIEW` button to access the homepage.**
+6. **Click the `PREVIEW` button to access the homepage.**
 
 # Contributing
 
