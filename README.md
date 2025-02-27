@@ -23,7 +23,7 @@ This project builds a web application that categorizes disaster-related messages
    - **Run ML Pipeline**
      Trains the model and saves it as a pickle file.
      ```sh
-     Please unzip the pickle before using tar -xf Name.zip
+     Please unzip the pickle before using tar -xf classifier.zip
      python models/train_classifier.py models/classifier.pkl
      ```
 
