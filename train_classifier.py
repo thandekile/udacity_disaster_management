@@ -1,11 +1,21 @@
 import sys
 import pandas as pd
 import numpy as np
+import string
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+import nltk
+nltk.download(['punkt', 'wordnet'])
+nltk.download('stopwords')
 from sqlalchemy import create_engine
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 from sklearn.pipeline import Pipeline
+from sklearn.multioutput import MultiOutputClassifier
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import GridSearchCV
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.multioutput import MultiOutputClassifier
 import pickle
@@ -38,6 +48,7 @@ def load_data(database_filepath):
     return X, Y, category_names
 
 def tokenize(text):
+    input_text = text
     """
     Tokenize and preprocess the text data.
 
@@ -49,22 +60,43 @@ def tokenize(text):
     """
     # Tokenize text using TfidfVectorizer (which includes lowercasing, punctuation removal, etc.)
     # Additional preprocessing steps can be added here
-    return text.split()
+    # Remove punctuation
+    text_cleaned = input_text.translate(str.maketrans('', '', string.punctuation))
+
+    # Tokenization and stopword removal
+    stopword_set = set(stopwords.words('english'))
+    token_list = word_tokenize(text_cleaned)
+    filtered_tokens = [word for word in token_list if word.lower() not in stopword_set]
+
+    # Lemmatization
+    lemmatizer = WordNetLemmatizer()
+    final_tokens = [lemmatizer.lemmatize(word).lower().strip() for word in filtered_tokens]
+
+    return final_tokens
 
 def build_model():
     """
-    Build and return a machine learning model using a pipeline.
+    Build and return a machine learning model using a pipeline with GridSearchCV.
 
     Returns:
-    model (sklearn.pipeline.Pipeline): A machine learning pipeline with Tfidf and RandomForestClassifier.
+    model (sklearn.model_selection.GridSearchCV): A GridSearchCV-wrapped pipeline for hyperparameter tuning.
     """
-    # Define the pipeline with TF-IDF vectorizer and RandomForestClassifier wrapped in MultiOutputClassifier
+    # Define the pipeline
     pipeline = Pipeline([
         ('tfidf', TfidfVectorizer(tokenizer=tokenize)),
         ('clf', MultiOutputClassifier(RandomForestClassifier()))
     ])
     
-    return pipeline
+    # Define hyperparameter grid
+    param_grid = {
+        'clf__estimator__n_estimators': [20, 30],
+        'clf__estimator__min_samples_split': [2, 4]
+    }
+
+    # Initialize GridSearchCV
+    model = GridSearchCV(pipeline, param_grid, cv=3, verbose=2)
+    
+    return model
 
 def evaluate_model(model, X_test, Y_test, category_names):
     """
