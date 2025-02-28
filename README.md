@@ -18,13 +18,16 @@ This project builds a web application that categorizes disaster-related messages
    - **Run ETL Pipeline**
      Cleans the data and stores it in a SQLite database.
      ```sh
-     python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db
+     python process_data.py disaster_messages.csv disaster_categories.csv DisasterResponse.db
      ```
    - **Run ML Pipeline**
-     Trains the model and saves it as a pickle file. Please unzip the pickle before using this command line
+     Unzip the model file before training:
      ```sh
-     unzip models/classifier.zip -d models/
-     python models/train_classifier.py models/classifier.pkl
+     unzip classifier.zip
+     ```
+     Train the model and save it as a pickle file:
+     ```sh
+     python train_classifier.py DisasterResponse.db classifier.pkl
      ```
 
 3) **Start the Web Application**
@@ -32,27 +35,20 @@ This project builds a web application that categorizes disaster-related messages
    ```sh
    python run.py
    ```
-   Open the application in a web browser at:
-   - https://lawknodlo5.prod.udacity-student-workspaces.com/
 
 # Project Structure
 
 ```
 project-root/
-├── app/
-│   ├── run.py                # Main Flask application
-│   ├── templates/
-│   │   ├── master.html       # Main webpage template
-│   │   ├── go.html           # Classification result page
-├── data/
-│   ├── process_data.py       # ETL pipeline script
-│   ├── disaster_messages.csv # Original messages dataset
-│   ├── disaster_categories.csv # Original categories dataset
-│   ├── DisasterResponse.db   # Processed database
-├── models/
-│   ├── train_classifier.py   # Machine learning pipeline script
-│   ├── classifier.pkl        # Trained model
+├── DisasterResponse.db        # Processed database
 ├── README.md                 # Documentation
+├── classifier.zip            # Compressed trained model
+├── disaster_categories.csv   # Original categories dataset
+├── disaster_messages.csv     # Original messages dataset
+├── process_data.py           # ETL pipeline script
+├── run.py                    # Main Flask application
+├── templates.tar.gz          # Compressed HTML templates
+├── train_classifier.py       # Machine learning pipeline script
 ```
 
 # Web Application Features
@@ -70,24 +66,20 @@ The pipeline employs GridSearchCV for hyperparameter tuning, ensuring high model
 
 ### Quick Start Guide:
 
-1. **Please unzip model file using the following command:**
+1. **Unzip the model file:**
    ```sh
-   unzip models/classifier.zip -d models/
+   unzip classifier.zip
    ```
 2. **Prepare Data and Train Model:**
    ```sh
-   python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db
-   python models/train_classifier.py data/DisasterResponse.db models/classifier.pkl
+   python process_data.py disaster_messages.csv disaster_categories.csv DisasterResponse.db
+   python train_classifier.py DisasterResponse.db classifier.pkl
    ```
-3. **Navigate to the `app` directory:**
-   ```sh
-   cd app
-   ```
-4. **Launch the web application:**
+3. **Launch the web application:**
    ```sh
    python run.py
    ```
-5. **Click the `PREVIEW` button to access the homepage.**
+4. **Click the `PREVIEW` button to access the homepage.**
 
 # Contributing
 
