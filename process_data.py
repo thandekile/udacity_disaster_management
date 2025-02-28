@@ -1,115 +1,77 @@
 import sys
 import pandas as pd
-import numpy as np
 from sqlalchemy import create_engine
-
-
-def load_data(messages_filepath, categories_filepath):
+ 
+ 
+def drop_duplicates_and_filter(df):
     """
-    Load messages and categories datasets and merge them into a single dataframe.
-
-    Parameters:
-    messages_filepath (str): Filepath to the messages CSV file.
-    categories_filepath (str): Filepath to the categories CSV file.
-
+    Remove duplicate entries and filter out rows where 'related' column has a value of 2.
+    Args:
+    df (pd.DataFrame): Input DataFrame.
     Returns:
-    df (pd.DataFrame): Merged dataframe containing messages and categories.
+    pd.DataFrame: Cleaned DataFrame.
     """
-    # Load messages dataset
-    messages = pd.read_csv(messages_filepath)
-
-    # Load categories dataset
-    categories = pd.read_csv(categories_filepath)
-
-    # Merge datasets on the 'id' column
-    df = messages.merge(categories, on='id')
-
-    return df
-
-
-def clean_data(df):
+    return df.drop_duplicates().query("related != 2")
+ 
+ 
+def extract_categories(category_series):
     """
-    Clean the merged dataframe by splitting categories, converting values to binary, and removing duplicates.
-
-    Parameters:
-    df (pd.DataFrame): Merged dataframe containing messages and categories.
-
+    Extract and convert category columns from a single concatenated string column.
+    Args:
+    category_series (pd.Series): Series containing category strings.
     Returns:
-    df (pd.DataFrame): Cleaned dataframe ready for saving to the database.
+    pd.DataFrame: A DataFrame with categories as separate columns.
     """
-    # Split the categories column into separate columns
-    categories = df['categories'].str.split(';', expand=True)
-
-    # Use the first row to extract category names
-    row = categories.iloc[0]
-    category_colnames = row.apply(lambda x: x.split('-')[0])
-
-    # Rename columns with extracted category names
-    categories.columns = category_colnames
-
-    # Convert category values to binary (0 or 1)
-    for column in categories:
-        # Set each value to be the last character of the string
-        categories[column] = categories[column].astype(str).str[-1]
-
-        # Convert column from string to numeric
-        categories[column] = categories[column].astype(int)
-
-    # Drop the original 'categories' column from df
-    df = df.drop(columns=['categories'])
-
-    # Concatenate df with the new categories dataframe
-    df = pd.concat([df, categories], axis=1)
-
-    # Remove duplicates
-    df = df.drop_duplicates()
-
-    # Remove duplicate columns from the DataFrame
-    df = df.loc[:, ~df.columns.duplicated()]
-
-    return df
-
-
-def save_data(df, database_filename):
+    category_dict = {}
+    for entry in category_series:
+        for pair in entry.split(';'):
+            key, val = pair.split('-')
+            category_dict.setdefault(key, []).append(int(val))
+    return pd.DataFrame(category_dict)
+ 
+ 
+def load_and_merge_data(messages_path, categories_path):
     """
-    Save the cleaned dataframe to an SQLite database.
-
-    Parameters:
-    df (pd.DataFrame): Cleaned dataframe to be saved.
-    database_filename (str): Filepath to the SQLite database.
+    Load messages and categories, then merge them into a single DataFrame.
+    Args:
+    messages_path (str): Filepath for messages dataset.
+    categories_path (str): Filepath for categories dataset.
+    Returns:
+    pd.DataFrame: Merged DataFrame with processed category columns.
     """
-    # Create the database engine
-    engine = create_engine(f'sqlite:///{database_filename}')
-
-    # Save the dataframe to an SQL database
-    df.to_sql('disaster_response', engine, index=False, if_exists='replace')
-
-
+    messages_df = pd.read_csv(messages_path)
+    categories_df = pd.read_csv(categories_path)
+    merged_df = pd.merge(categories_df, messages_df, on='id')
+    # Process categories and merge
+    expanded_categories = extract_categories(merged_df['categories'])
+    merged_df.drop(columns=['categories'], inplace=True)
+    return pd.concat([merged_df, expanded_categories], axis=1)
+ 
+ 
+def save_to_database(df, db_filename):
+    """
+    Save DataFrame to a SQLite database.
+    Args:
+    df (pd.DataFrame): Processed DataFrame to be saved.
+    db_filename (str): Database filename.
+    """
+    engine = create_engine(f'sqlite:///{db_filename}')
+    df.to_sql('ProcessedMessages', engine, index=False, if_exists='replace')
+ 
+ 
 def main():
     if len(sys.argv) == 4:
-
-        messages_filepath, categories_filepath, database_filepath = sys.argv[1:]
-
-        print('Loading data...\n    MESSAGES: {}\n    CATEGORIES: {}'
-              .format(messages_filepath, categories_filepath))
-        df = load_data(messages_filepath, categories_filepath)
-
+        msg_filepath, cat_filepath, db_filepath = sys.argv[1:]
+        print(f'Loading data...\n    MESSAGES: {msg_filepath}\n    CATEGORIES: {cat_filepath}')
+        df = load_and_merge_data(msg_filepath, cat_filepath)
         print('Cleaning data...')
-        df = clean_data(df)
-
-        print('Saving data...\n    DATABASE: {}'.format(database_filepath))
-        save_data(df, database_filepath)
-
-        print('Cleaned data saved to database!')
-
+        df = drop_duplicates_and_filter(df)
+        print(f'Saving data...\n    DATABASE: {db_filepath}')
+        save_to_database(df, db_filepath)
+        print('Data successfully saved to the database!')
     else:
-        print('Please provide the filepaths of the messages and categories '
-              'datasets as the first and second argument respectively, as '
-              'well as the filepath of the database to save the cleaned data '
-              'to as the third argument. \n\nExample: python process_data.py '
-              'disaster_messages.csv disaster_categories.csv '
-              'DisasterResponse.db')
-
-
+        print("Usage: python process_data.py <messages.csv> <categories.csv> <database.db>")
+ 
+ 
 if __name__ == '__main__':
     main()
